@@ -1,6 +1,7 @@
 #ifndef CONSTANTS_H
 #define CONSTANTS_H
 
+/* Error codes which can return dns-export */
 enum returnCode {
     R_OKAY = 1,
     R_UNKNOWN_PARAM,
@@ -15,6 +16,7 @@ enum returnCode {
     R_SYSLOG_ERROR,
 };
 
+/* Supported dns types */
 enum resourceRecourdTypes {
 	RR_A     = 1,
 	RR_NS    = 2,

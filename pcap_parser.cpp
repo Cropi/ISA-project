@@ -53,7 +53,7 @@ void parsePcapFile(argument a) {
 				data += 16;
 				break;
 			default:
-				cout<< "Unsupport link type\n";
+				cout<< "Unsupported link type\n";
 				exit(-1);
 		}
 
@@ -160,11 +160,9 @@ void parsePcapFile(argument a) {
 			// Get data
 			answer_data = label + ' ' + RRtypes[qtype] + ' ';
 			answer_data += parseDNSdata(tmp, qtype, data) + ' ';
-			// If DNS type is valid
-			// if (isDNSRequired(qtype))
-				results.push_back(answer_data);
-			// else
-			// 	cout << qtype << "\n";
+
+			results.push_back(answer_data);
+
 			// Skip Authority RRs and Additional RRs
 			tmp += ntohs(*(uint16_t *)tmp) + 2;
 		}

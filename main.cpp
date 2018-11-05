@@ -20,15 +20,16 @@
 #include "syslogmessage.h"
 
 using namespace std;
-void signal_handler(int signum);
-void sendToSyslog(int signum);
+void signalHandler(int signum); /* reacts to SYGUSR1 signal */
+void sendToSyslog(int signum); /* after a period of time sends packets to syslog server */
 void printOutStatistics();
-list<string> results;
-unsigned int seconds;
-string syslog_server;
-bool s = false;
-string app_name;
+list<string> results; /* each dns packet is saved in a list */
+unsigned int seconds; /* period of time after statistics are sent */
+string syslog_server; /* syslog server name */
+bool s = false; /* indicates if syslog server is defined */
+string app_name; /* application name: dns-export */
 
+/* Filter port 53 for dns capture */
 const char *filter =
 	// " ((tcp[10] & 0x80 = 128) or "
 	// " (udp[10] & 0x80 = 128)) and "
@@ -40,6 +41,7 @@ const char *filter =
 	// ")";
 	"port 53";
 
+/* support DNS types */
 std::map<int, string> RRtypes = {
     make_pair(RR_A, "A"),			// OK
 	make_pair(RR_NS, "NS"),			// OK
@@ -60,7 +62,7 @@ std::map<int, string> RRtypes = {
 
 int main(int argc, char **argv)
 {
-    signal(SIGUSR1, signal_handler);
+    signal(SIGUSR1, signalHandler);
 	signal(SIGALRM, sendToSyslog);
 
     argument a;
@@ -85,10 +87,10 @@ int main(int argc, char **argv)
     exit(R_OKAY);
 }
 
-void signal_handler(int signum)
+void signalHandler(int signum)
 {
     if (signum == SIGUSR1) {
-        printf("LOG: Received SIGUSR1! Printing out statistics\nLOG: =============================================\n");
+        cout << "LOG: Received SIGUSR1! Printing out statistics\nLOG: =============================================\n" ;
 		printOutStatistics();
     }
 }

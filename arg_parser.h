@@ -10,7 +10,7 @@
 #include "constants.h"
 using namespace std;
 
-
+/* Structure to captrue input arguments */
 struct argument {
     bool r = false;
     bool i = false;
@@ -22,8 +22,12 @@ struct argument {
     double seconds;
 };
 
+/* Check whether inpur arguments are correc */
 int checkArguments(int argc, char **argv, argument *a);
+
+/* Output erroMSG to stderr */
 void errorMsg(returnCode r, char *message);
+
 bool isArgument(char *string);
 
 

@@ -10,6 +10,7 @@
 #include <signal.h>
 using namespace std;
 
+/* Sniff interace */
 void listenToInterface(argument a);
 
 #endif
