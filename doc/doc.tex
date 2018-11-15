@@ -87,7 +87,7 @@
 
 \section{Abstract}
 
-The primary goal of this project is to analyze and print out the description of both incoming and outgoing DNS responses from a valid pcap file. It also allows the user to display DNS packets being transmitted or recieved over a network which the computer is attached. It is also possible to use dnx-export for the specific purpose of summarizing and sending the communications to syslog server. First of all, this document gives a brief introduction about DNS(Domain Name System). After that, we will cover what packet sniffing is as well as how to analyze the data packets that have been captured and analyzed on a network. Then it follows a detailed description about the implementation part describing data parsing on different layers. This will solidify a basic understanding of packet sniffing. The most troublesome parts and difficult steps which made the programming part more complicated will be disscussed in this documentation. Finally, we will encompass the conclusions and the discussion of the results from the project. The authors point of view towards the task is included as well.
+The primary goal of this project is to analyze and print out the description of both incoming and outgoing DNS packet data from a valid pcap file. It also allows the user to display DNS packets being transmitted or recieved over a network which the computer is attached. It is also possible to use dnx-export for the specific purpose of summarizing and sending the communications to syslog server. First of all, this document gives a brief introduction about DNS(Domain Name System). After that, we will cover what packet sniffing is as well as how to analyze the data packets that have been captured and analyzed on a network. Then it follows a detailed description about the implementation part describing data parsing on different layers. This will solidify a basic understanding of packet sniffing. The most troublesome parts and difficult steps which made the programming part more complicated will be disscussed in this documentation. Finally, we will encompass the conclusions and the discussion of the results from the project. The authors point of view towards the task is included as well.
 
 \section{Introduction}
 
@@ -172,7 +172,7 @@ At this point, program will continue in one of the following ways. A valid file 
 
 We begin by identifying which interface we want to sniff on. We can either define an interface as a string or we can sniff on all interfaces by means of 'ANY'. Next, pcap needs to be initialized. We differentiate between devices using file handles, just like an ordinary ones for file handling. The above listed steps only refered to live sniffing. Then, we must create a rule set not to parse unneccssary packets. This can be achieved by setting port to 53. Compiling and aplying is also required. The rule set is kept in a string, and is converted into a format that pcap can read (hence compiling it). Finally, we tell pcap to enter it's primary execution loop. In this state, pcap waits until it has received however many packets we want it to. Every time it gets a new packet in, it calls another function that we have already defined.
 
-From now on, things will constantly get more and more complicated. First of all, pcap\_datalink(p) returns the link-layer header type for the live capture or "savefile" specified by p. We only deal with ethernet and linux cooked capture. It gives us information about which internet protocol version(IPv4 or IPv6) does it support. After successfully parsing link-layer header, we can move on to internet protocol version. Size of IPv4 is constantly defined, while IPv4 has a special field containg additional information connected to its size. Penultimate task is to successfully identify and handle the TCP/UDP layer. Most likely DNS packets will arive as UDP ones but in some cases, such as longer and more detailed answers can appear. They can be handled via TCP. UDP header size is set in advance, contrary to TCP where it need to be read from a special field called th\_off(the length of the TCP header is always a multiple of 32 bits).
+From now on, things will constantly get more and more complicated. First of all, pcap\_datalink(p) returns the link-layer header type for the live capture or "savefile" specified by p. We only deal with ethernet and linux cooked capture. It gives us information about which internet protocol version(IPv4 or IPv6) does it support. After successfully parsing link-layer header, we can move on to internet protocol version. Size of IPv6 is constantly defined, while IPv4 has a special field containg additional information connected to its size. Penultimate task is to successfully identify and handle the TCP/UDP layer. Most likely DNS packets will arive as UDP ones but in some cases, such as longer and more detailed answers can appear. They can be handled via TCP. UDP header size is set in advance, contrary to TCP where it need to be read from a special field called th\_off(the length of the TCP header is always a multiple of 32 bits).
 
 At the current state we have a pointer which tells us where does DNS query/response start. By the help of transaction ID we can identify which query is connected to which response. This property is properly used while tracking down TCP packets. DNS packets using TCP protocol contain an additional 2 byte length field. There are some obstacles between us and DNS answers rigth now, to get right there we have to skip Transaction ID, Flags, Questions, Answers, Authority RRs and Additional RRs; as I mentioned earlier their size is constantly defined. Only fields that remain are queries, for this purpose I have defined a so-called jumpToDnsAnswers() function, which skips the whole unnecessary content. More detailed description by using pseudocode is also availabe in section \ref{ALGORITHMS}.
 
@@ -210,8 +210,8 @@ Thanks to available pcap files provided by Ing. Petr Matoušek, Ph.D., M.A. via 
         \While {label is not char with 0 ASCII CODE}
             \State Increase label pointer
         \EndWhile
+        \State return label+1
     \EndProcedure
-    \State return label+1
     \end{algorithmic}
 \end{algorithm}
 
@@ -231,7 +231,7 @@ Thanks to available pcap files provided by Ing. Petr Matoušek, Ph.D., M.A. via 
                     \EndIf
                     \State $ len \gets label $
                     \State $ tmp \gets tmp $ + 1
-                    \State $ string \gets $ len number of characters
+                    \State $ string \gets string $ + len number of characters
                     \State $ string \gets string$ + '.'
                 \EndWhile
                 \State $ label \gets label $ + 1
