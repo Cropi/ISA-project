@@ -1,0 +1,61 @@
+.TH dns-export 1
+.SH NAME
+    dns-export \- export DNS information using Syslog
+.SH SYNOPSIS
+.B dns-export
+    [\fB\-r\fR \fIpcap_file\fR]
+    [\fB\-i\fR \fIinterface\fR]
+    [\fB\-s\fR \fIsyslog_server\fR]
+    [\fB\-t\fR \fIseconds\fR]
+
+.SH DESCRIPTION
+.B Dns-export
+prints out a description of the contents of packets from a \fIpcap file\fR or on a \fInetwork interface\fR containing DNS responses. Generally, the description typically consists of a \fBserver name, dns resource record type, answer content and a message counter\fR. It can also be run with \fB-s\fR flag, which causes sending the description to a syslog server for later analysis, or with \fB-r\fR flag, which causes to read from a saved packet file rather than using \fB-i\fR to read packet from a network interface. Furthermore, \fB-t\fR parameter can specify the period of time between sending packet descriptions to syslog server.
+
+.B Dns-export
+will, if not parsing a pcap file, continue capturing packets until it is not interrupted by a \fBSIGINT\fR(ctrl+c) or a \fBSIGTERM\fR(kill) signal. On the other side, if it is interrupted by a \fBSIGUSR1\fR(kill -10) signal, it will report a detailed description of captured packets.
+
+.SH OPTIONS
+.TP
+\ \fB-r\fR \fIpcap_file\fR
+Parse packets from pcap file. If it is not valid than an error message will show up. If it is specified, neither -i nor -t can be specified or an error message will show up.
+
+.TP
+\ \fB-i\fR \fIinterface\fR
+Listen on interace.
+Use ifconfig -a(on linux) to find out what kind of interfaces do you have. On linux systems, an interface argument of \fB'any'\fR can be used to capture packets from all interfaces.
+
+.TP
+\ \fB-s\fR \fIsyslog_server\fR
+Send statistics to syslog server.
+It can be an IPv4/IPv6. Dns-export also deals with hostname, which are human-readable. Opens a connection to the system logger to create log messages in every 60 seconds.
+
+.TP
+\ \fB-t\fR \fIseconds\fR
+Modify the period of time in seconds after messages are sent to syslog server. Its default value is 60.
+
+.SH Invalid parameter combinations
+-r and -i - Only one mode can be enabled at a certain time.
+
+-r and -t - Time period can not be specified unless -i is specified.
+
+
+
+.SH OUTPUT
+Output is an array of descriptions.
+\ As the manual mentioned earlier, each description consists of \fBserver name, dns resource record type, resource data and a message counter\fR.
+.TP
+    \fBserver name\fR - The domain name for which the query was sent.
+.TP
+    \fBtype\fR - Specifies the type of the data included in the record.
+.TP
+    \fBresource data\fR - This contains the results of the binding data. Each DNS resource might contain different number and types of resource data. It deeply depends on the DNS resource record type. For more information please check http://www.networksorcery.com/enp/protocol/dns.htm#Answer%20RRs
+.TP
+    \fBmessage counter\fR - Counts how many same responses have been identified.
+
+
+.SH BUGS
+To report bugs and others problems, such as an unexpected behaviour created by dns-export or a security issue please feel free to contact \fBxlakat01@stud.fit.vutbr.cz\fR
+
+.SH AUTHOR(S)
+Original author: Attila Lakatos, VUT FIT 3BIT
