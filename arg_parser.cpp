@@ -56,9 +56,9 @@ int checkArguments(int argc, char **argv, argument *a) {
                     }
                     else {
                         s = argv[optind];
-                        if (regex_match(s, regex("^(\\+)?(0|([1-9][0-9]*))(\\.[0-9]+)?$"))) {
-                            a->seconds = atof(s.c_str());
-                        }
+						if (isNumber(s)) {
+							a->seconds = atoi(s.c_str());
+						}
                         else {
                             errorMsg(R_INVALID_TIME, (char *)"-t optarg must be a valid unsigned double\n");
                         }
@@ -78,9 +78,29 @@ int checkArguments(int argc, char **argv, argument *a) {
             errorMsg(R_INVALID_COMBINATION, (char *)"Patameters: pcaf file[-r] and interace[-i] can not be combined\n");
         else if (a->r && a->t)
             errorMsg(R_INVALID_COMBINATION, (char *)"Parameters: pcaf file[-r] and time[-t] can not be combined\n");
-    }
+    
+		if (a->s) {
+			int serv;
+			struct addrinfo hints;
+			struct addrinfo *result;
+			memset(&hints, 0, sizeof(struct addrinfo));
+			hints.ai_family = AF_UNSPEC;    /* Allow IPv4 or IPv6 */
+			hints.ai_socktype = SOCK_DGRAM; /* Datagram socket */
+			hints.ai_flags = 0;
+			hints.ai_protocol = IPPROTO_UDP;          /* UDP protocol */
+			serv = getaddrinfo(a->syslog.c_str(), "514", &hints, &result);
+			if (serv != 0) {
+				errorMsg(R_SYSLOG_ERROR, (char *)"Could not find hostname/IPv4/IPv6\n");
+				exit(EXIT_FAILURE);
+			}
+		}
+	}
 
     return R_OKAY;
+}
+
+bool isNumber(const std::string& s) {
+	return !s.empty() && std::find_if(s.begin(), s.end(), [](char c) { return !std::isdigit(c); }) == s.end();
 }
 
 bool isArgument(char *string) {

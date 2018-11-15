@@ -15,6 +15,8 @@ int syslogServer(string syslog_server) {
     for (list<string>::iterator it = tmp.begin(); it != tmp.end(); ++it){
         messages[*it] += 1;
     }
+	if (messages.size() == 0)
+		return 0;
 
     memset(&hints, 0, sizeof(struct addrinfo));
     hints.ai_family = AF_UNSPEC;    /* Allow IPv4 or IPv6 */

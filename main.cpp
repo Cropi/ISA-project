@@ -90,7 +90,7 @@ int main(int argc, char **argv)
 void signalHandler(int signum)
 {
     if (signum == SIGUSR1) {
-        cout << "LOG: Received SIGUSR1! Printing out statistics\nLOG: =============================================\n" ;
+        cout << "LOG: Received SIGUSR1! Printing out statistics\n" ;
 		printOutStatistics();
     }
 }

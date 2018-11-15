@@ -4,6 +4,7 @@ extern list<string> results;
 extern const char *filter;
 extern map<int, string> RRtypes;
 
+// #define DEBUGING 1
 
 void parsePcapFile(argument a) {
     char err_buff[PCAP_BUFFER_SIZE];
@@ -53,7 +54,7 @@ void parsePcapFile(argument a) {
 				data += 16;
 				break;
 			default:
-				cout<< "Unsupported link type\n";
+				cout<< "LOG: Unsupported link type\n";
 				exit(-1);
 		}
 
@@ -70,7 +71,8 @@ void parsePcapFile(argument a) {
 				data += 40;
 				break;
 			default:
-				cerr << "Undefined type\n";
+				cerr << "LOG: Undefined type\n";
+				continue;
 		}
 
         int b;
@@ -78,19 +80,25 @@ void parsePcapFile(argument a) {
         unsigned long seq, ack;
 		switch(ip_type) {
 			case 6:
-				cout << counter++ << " - TCP - ";
+                #ifdef DEBUGING
+                    cout << counter++ << " - TCP - ";
+                #endif
                 seq = ntohl(*(uint32_t *)(data+4));
                 ack = ntohl(*(uint32_t *)(data+8));
                 mytcp = (struct tcphdr *)data;
-                if (!(mytcp->th_flags & TH_PUSH)) {
-                    cout << "NOT IMPLEMENTED\n";
+                if (!(mytcp->psh & 1)) {
+                    #ifdef DEBUGING
+                        cout << "NOT IMPLEMENTED\n";
+                    #endif
                     continue;
                 }
-                data += (mytcp->th_off*4);
+                data += (mytcp->doff*4);
 
 				break;
 			case 17:
-				cout<<counter++ <<" - UDP - ";
+                #ifdef DEBUGING
+                    cout<<counter++ <<" - UDP - ";
+                #endif
 				data += 8;
 				break;
 			default:
@@ -103,17 +111,31 @@ void parsePcapFile(argument a) {
             data += 2;
         }
 		struct dnshdr *my_dns = (struct dnshdr *)(data);
-		my_dns->qdcount = ntohs(my_dns->qdcount);
         my_dns->id = ntohs(my_dns->id);
-		my_dns->flags = ntohs(my_dns->flags);
+
+		//my_dns->flags = ntohs(my_dns->flags);
+
+		// my_dns->qr = ntohs(my_dns->qr);
+		// my_dns->opcode = ntohs(my_dns->opcode);
+		// my_dns->aa = ntohs(my_dns->aa);
+		// my_dns->tc = ntohs(my_dns->tc);
+		// my_dns->rd = ntohs(my_dns->rd);
+		// my_dns->ra = ntohs(my_dns->ra);
+		// my_dns->zero = ntohs(my_dns->zero);
+		// my_dns->rcode = ntohs(my_dns->rcode);
+
+
+		my_dns->qcount = ntohs(my_dns->qcount);
 		my_dns->ancount = ntohs(my_dns->ancount);
 		my_dns->nscount = ntohs(my_dns->nscount);
-		my_dns->arcount = ntohs(my_dns->arcount);
+		my_dns->adcount = ntohs(my_dns->adcount);
 
         if (ip_type == 6) {
-            if ((my_dns->flags & 0x8000) == 0) { // query
+            if (my_dns->qr == 0) { // query
                 tcpnum[my_dns->id] = ack;
-                cout << "query\n";
+                #ifdef DEBUGING
+                    cout << "query\n";
+                #endif
                 continue;
             }
             else { // response
@@ -122,24 +144,31 @@ void parsePcapFile(argument a) {
                 }
                 else {
                     // TCP packet is reassembled
-                    cout << "Reassembled tcp response\n";
+                    #ifdef DEBUGING
+                        cout << "Reassembled tcp response\n";
+                    #endif
                     continue;
                 }
             }
 
         }
-
-		printf("%s", (my_dns->flags & 0x8000) == 0 ? "query   " : "response");
-		if (my_dns->ancount == 0) {
-			cout << "\n";
-			continue;
+        #ifdef DEBUGING
+		      printf("%s", (my_dns->qr == 0) ? "query   " : "response");
+        #endif
+        if (my_dns->ancount == 0) {
+            #ifdef DEBUGING
+			         cout << "\n";
+            #endif
+            continue;
 		}
-		printf(" *%u* \n", my_dns->ancount);
+        #ifdef DEBUGING
+		      printf(" *%u* \n", my_dns->ancount);
+        #endif
 
 		tmp = (u_char *)(data + 12);
 		payload_offset = data - packet;
 		end = data + (header.len - payload_offset);
-		for (int i = 0; i < my_dns->qdcount; i++) {
+		for (int i = 0; i < my_dns->qcount; i++) {
 
 			// Skip the query part
 			tmp = jumpToDnsAnswers(tmp);
@@ -162,12 +191,17 @@ void parsePcapFile(argument a) {
 			answer_data += parseDNSdata(tmp, qtype, data) + ' ';
 
 			results.push_back(answer_data);
+            #ifdef DEBUGING
+                cout << "\t" << answer_data << "\n";
+            #endif
 
 			// Skip Authority RRs and Additional RRs
 			tmp += ntohs(*(uint16_t *)tmp) + 2;
 		}
-		cout << "\n";
-	}
+        #ifdef DEBUGING
+            cout << "\n";
+        #endif
+    }
     pcap_close(pcap_handler);
 }
 
@@ -197,10 +231,8 @@ u_char *jumpToDnsAnswers(u_char *label) {
 
 string dnsNameToString(u_char **label, const u_char *payload, const u_char *end) {
 	u_char *tmp;
-	static int count = 0;
-	count++;
 
-	string s;
+	string s="";
 	while (*label < end && **label) {
 		if (**label & 0xc0) { /* Pointer */
 			tmp = (u_char *)payload;
@@ -235,7 +267,10 @@ string dnsNameToString(u_char **label, const u_char *payload, const u_char *end)
 			s += '.';
 		}
 	}
-	s.pop_back();
+
+	if (s != "")
+		s.pop_back();
+
 
 
 	return s;
