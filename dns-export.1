@@ -54,6 +54,19 @@ Output is an array of descriptions.
     \fBmessage counter\fR - Counts how many same responses have been identified.
 
 
+.SH EXAMPLES
+.TP
+    \fB ./dns-export -r tests/dns.pcap \fR - Analyze packets from pcap file.
+.TP
+    \fB ./dns-export -i eth0 \fR - Listen to network interface: eht0
+.TP
+    \fB ./dns-export -i any \fR - Listen to all of the available network interfaces.
+.TP
+    \fB ./dns-export -i any -s google.com -t 15 \fR - Listen all of the available network interfaces at a certain time and forward statistics to syslog server after 15 seconds repeatedly.
+
+
+
+
 .SH BUGS
 To report bugs and others problems, such as an unexpected behaviour created by dns-export or a security issue please feel free to contact \fBxlakat01@stud.fit.vutbr.cz\fR
 

@@ -29,7 +29,8 @@ using namespace std;
 	uint16_t arcount;
 } __attribute__((packed));*/
 
-
+// ATTENTION!!!
+// SOURCE: https://0x00sec.org/t/dns-header-for-c/618
 struct dnshdr {
 	uint16_t id;
 # if __BYTE_ORDER == __BIG_ENDIAN

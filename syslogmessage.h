@@ -60,12 +60,12 @@ enum Severity {
 int syslogServer(string syslog_server);
 
 /* Creates syslog message header + content */
-void createSyslogMessages(map<string, int> &messages, list<string> &answers, Facility f, Severity s, int v, string app_name);
-string createSyslogMessageHeader(Facility f, Severity s, int v, string app_name);
+void createSyslogMessages(map<string, int> &messages, list<string> &answers, Facility f, Severity s, int v, string app_name, int sfd);
+string createSyslogMessageHeader(Facility f, Severity s, int v, string app_name, int sfd);
 string createSyslogMessageHeaderPriority(Facility f, Severity s);
 string createSyslogMessageHeaderVersion(int version);
 string createSyslogMessageHeaderTime();
-string createSyslogMessageHeaderHostname();
+string createSyslogMessageHeaderHostname(int sfd);
 string createSyslogMessageHeaderApp(string app_name);
 
 /* sends messages to syslog server */

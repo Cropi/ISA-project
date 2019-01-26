@@ -30,7 +30,7 @@ int syslogServer(string syslog_server) {
     s = S_INFORMATIONAL;
     v = 1;
 
-    createSyslogMessages(messages, answers, f, s, v, app_name);
+    createSyslogMessages(messages, answers, f, s, v, app_name, sfd);
 
     sendSyslogMessages(sfd, answers);
 }
@@ -72,24 +72,24 @@ int sendSyslogMessages(int source, list<string> &answers) {
     }
 }
 
-void createSyslogMessages(map<string, int> &messages, list<string> &answers, Facility f, Severity s, int v, string app_name) {
+void createSyslogMessages(map<string, int> &messages, list<string> &answers, Facility f, Severity s, int v, string app_name, int sfd) {
     string msg;
     char data[128];
     for (auto it = messages.begin(); it != messages.end(); ++it){
-        string sys_hdr = createSyslogMessageHeader(f, s, v, app_name);
+        string sys_hdr = createSyslogMessageHeader(f, s, v, app_name, sfd);
 
         snprintf(data, 128, "%d", it->second);
-        msg =  sys_hdr + it->first + ' ' + data;
+        msg =  sys_hdr + it->first  + data;
 
         answers.push_back(msg);
     }
 }
 
-string createSyslogMessageHeader(Facility f, Severity s, int v, string app_name) {
+string createSyslogMessageHeader(Facility f, Severity s, int v, string app_name, int sfd) {
     return  createSyslogMessageHeaderPriority(f, s)   +
             createSyslogMessageHeaderVersion(v) + ' ' +
             createSyslogMessageHeaderTime() + ' '     +
-            createSyslogMessageHeaderHostname() + ' ' +
+            createSyslogMessageHeaderHostname(sfd) + ' ' +
             createSyslogMessageHeaderApp(app_name) + " --- ";
 }
 
@@ -120,13 +120,17 @@ string createSyslogMessageHeaderTime() {
     return data;
 }
 
-string createSyslogMessageHeaderHostname() {
-    char data[128];
-    int hostname = gethostname(data, 128);
-    if (hostname == 0)
-        return data;
-    else
+string createSyslogMessageHeaderHostname(int sfd) {
+    char myIP[20];
+    struct sockaddr_in server_addr, my_addr;
+
+	bzero(&my_addr, sizeof(my_addr));
+	socklen_t len = sizeof(my_addr);
+	getsockname(sfd, (struct sockaddr *) &my_addr, &len);
+	inet_ntop(AF_INET, &my_addr.sin_addr, myIP, sizeof(myIP));
+    if (strcmp(myIP, "") == 0)
         return "NULL";
+    return myIP;
 }
 
 string createSyslogMessageHeaderApp(string app_name) {

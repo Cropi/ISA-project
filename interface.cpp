@@ -200,7 +200,9 @@ void listenToInterface(argument a) {
     			answer_data = label + ' ' + RRtypes[qtype] + ' ';
     			answer_data += parseDNSdata(tmp, qtype, data) + ' ';
 
-    			results.push_back(answer_data);
+                if (isDNSRequired(qtype)) {
+    			    results.push_back(answer_data);
+                }
                 #ifdef DEBUGING
                     cout << "\t" << answer_data << "\n";
                 #endif
